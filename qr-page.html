@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Display</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="qr-display">
+        <img id="qrImage" src="" alt="QR Code">
+        <button onclick="downloadQR()">Download QR</button>
+    </div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const ip = params.get('ip');
+        const qrImage = document.getElementById('qrImage');
+        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.google.com/maps/search/?api=1&query=${ip}`;
+
+        function downloadQR() {
+            const link = document.createElement('a');
+            link.href = qrImage.src;
+            link.download = 'QRCode.png';
+            link.click();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+
+    <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" />
+    <link rel="stylesheet" href="ip-finder.css">
+
+    <style>
+        #locationInfo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+
+    <meta name="description" content="Web site created using create-react-app" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <title>IP-finder</title>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="input">
+        <input type="text" id="ipInput" placeholder="Enter IP Address" />
+        <button id="searchBtn">Search</button>
+    </div>
+    <div class="ip-tracker">IP Address Tracker</div>
+
+    <div id="locationInfo"></div>
+
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js" type="text/javascript" charset="utf-8" async></script>
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js" type="text/javascript" charset="utf-8" async></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js" async></script>
+    <script type="text/javascript" charset="utf-8" src="https://js.api.here.com/v3/3.1/mapsjs-ui.js" async></script>
+    <script src="ip-finder.js" async></script>
+
+    <script>
+    const platform = new H.service.Platform({
+        apikey: 'aeBu0GkfKm7QWDg1tXqpul8XcdwwzqpFljU0XxPfeiU' // Replace with your HERE API key
+    });
+
+    const defaultLayers = platform.createDefaultLayers();
+    const map = new H.Map(
+        document.getElementById('map'),
+        defaultLayers.vector.normal.map, {
+            zoom: 7,
+            center: { lat: 12.981271, lng: 79.166130 }
+        }
+    );
+
+    const behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+    window.addEventListener('resize', () => map.getViewPort().resize());
+    const ui = H.ui.UI.createDefault(map, defaultLayers);
+    const control = ui.getControl('zoom');
+
+    const ipInput = document.getElementById('ipInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const locationInfo = document.getElementById('locationInfo');
+
+    searchBtn.addEventListener('click', async () => {
+        const ipAddress = ipInput.value;
+
+        // Fetch the IP geolocation data
+        const ipApiResponse = await fetch(`https://ipinfo.io/${ipAddress}/json`);
+        const ipLocationData = await ipApiResponse.json();
+        console.log("IP Geolocation Data:", ipLocationData); // Log the IP geolocation data
+
+        // Extract latitude and longitude from the IP location data
+        const [latitude, longitude] = ipLocationData.loc.split(',');
+
+        // Use the obtained coordinates to center the map
+        map.setCenter({ lat: parseFloat(latitude), lng: parseFloat(longitude) });
+        
+        //smooth zoom with animation
+        map.setZoom(14, {duration:1000});
+
+        // Display a marker at the location
+        const marker = new H.map.Marker({ lat: parseFloat(latitude), lng: parseFloat(longitude) });
+        map.addObject(marker);
+
+        // Display location information
+        locationInfo.innerHTML = `
+            <strong>Location:</strong> ${ipLocationData.city}, ${ipLocationData.region}, ${ipLocationData.country}<br>
+            <strong>Latitude:</strong> ${latitude}<br>
+            <strong>Longitude:</strong> ${longitude}
+        `;
+    });
+    </script>
+</body>
+</html>
